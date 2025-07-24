@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>yvac-ui</title>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <form id="yvacForm">
+        <h2 class="app-title">YVAC: Youtube Video Audio Converter</h2>
+        <div class="input-url">
+            <label class="label-text">Youtube Url:</labeL>
+            <input type="text" name="url">
+        </div>
+        <label class="label-text">start time</label>
+        <div class="input-time-start">
+            <label class="label-text">hh:</label>
+            <input type="text" name="startHH">
+            <label class="label-text">mm:</label>
+            <input type="text" name="startMM">
+            <label class="label-text">ss:</label>
+            <input type="text" name="startSS">
+        </div>
+        <label class="label-text">end time</label>
+        <div class="input-time-end">
+            <label class="label-text">hh:</label>
+            <input type="text" name="endHH">
+            <label class="label-text">mm:</label>
+            <input type="text" name="endMM">
+            <label class="label-text">ss:</label>
+            <input type="text" name="endSS">
+        </div>
+        <div class="input-filename">
+            <label class="label-text">file name:</label>
+            <input type="text" name="filename">
+        </div>
+
+        <div class="buttons">
+            <button type="submit">download</button>
+            <button type="button">reset</button>
+        </div>
+    </form>
+    <script src="./src/main.ts" type="module"></script>
+</body>
+
+</html>
