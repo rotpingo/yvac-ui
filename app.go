@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 )
 
 // App struct
@@ -18,4 +19,8 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) GetData(url, ss, to, name string) {
+	fmt.Println("Form files:", url, ss, to, name)
 }
