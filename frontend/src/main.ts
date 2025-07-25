@@ -1,6 +1,6 @@
 import './style.css';
 import './app.css';
-import { GetData } from "../wailsjs/go/main/App.js"
+import { DownloadAndTrim } from "../wailsjs/go/main/App.js"
 import { ytDataModel } from './ytData.model';
 
 const form = document.getElementById("yvacForm") as HTMLFormElement;
@@ -26,8 +26,7 @@ form.addEventListener("submit", function(event) {
 })
 
 function handleFormData(data: ytDataModel) {
-    console.log(data)
-    GetData(data)
+    DownloadAndTrim(data)
 }
 
 function onReset() {
