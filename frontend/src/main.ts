@@ -5,10 +5,11 @@ import { ytDataModel } from './ytData.model';
 
 const form = document.getElementById("yvacForm") as HTMLFormElement;
 document.getElementById("resetBtn")?.addEventListener("click", onReset);
-const formData = new FormData(form);
 
 form.addEventListener("submit", function(event) {
     event.preventDefault();
+
+    const formData = new FormData(form);
 
     const data: ytDataModel = {
         Url: formData.get("url") as string,
@@ -25,6 +26,7 @@ form.addEventListener("submit", function(event) {
 })
 
 function handleFormData(data: ytDataModel) {
+    console.log(data)
     GetData(data)
 }
 

@@ -41,6 +41,14 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) GetData(data ytData) {
 
+	client := youtube.Client{}
+
+	video, err := client.GetVideo(data.Url)
+	if err != nil {
+		fmt.Println("Failed to get the URL", err)
+		return
+	}
+
 	if data.StartHH == "" {
 		data.StartHH = "00"
 	}
@@ -51,7 +59,7 @@ func (a *App) GetData(data ytData) {
 		data.StartSS = "00"
 	}
 	if data.Name == "" {
-		data.Name = "yvacAudioFile"
+		data.Name = correctFilename(video.Title)
 	}
 
 	if data.EndHH == "" || data.EndMM == "" || data.EndSS == "" {
@@ -86,11 +94,12 @@ func (a *App) GetData(data ytData) {
 		}
 	}
 
-	fmt.Println(data)
 	downloadAndTrim(data)
+	fmt.Println(data)
 }
 
 func downloadAndTrim(data ytData) {
+	fmt.Println(data)
 	client := youtube.Client{}
 
 	video, err := client.GetVideo(data.Url)
