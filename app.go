@@ -41,6 +41,11 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) GetData(data ytData) {
 
+	downloadAndTrim(data)
+}
+
+func downloadAndTrim(data ytData) {
+
 	client := youtube.Client{}
 
 	video, err := client.GetVideo(data.Url)
@@ -59,7 +64,7 @@ func (a *App) GetData(data ytData) {
 		data.StartSS = "00"
 	}
 	if data.Name == "" {
-		data.Name = correctFilename(video.Title)
+		data.Name = correctFilename(video.Title) + "_clip"
 	}
 
 	if data.EndHH == "" || data.EndMM == "" || data.EndSS == "" {
@@ -92,20 +97,6 @@ func (a *App) GetData(data ytData) {
 				data.EndSS = ss
 			}
 		}
-	}
-
-	downloadAndTrim(data)
-	fmt.Println(data)
-}
-
-func downloadAndTrim(data ytData) {
-	fmt.Println(data)
-	client := youtube.Client{}
-
-	video, err := client.GetVideo(data.Url)
-	if err != nil {
-		fmt.Println("Failed to get the URL", err)
-		return
 	}
 
 	//AUDIO FORMAT ONLY
