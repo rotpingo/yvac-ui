@@ -1,10 +1,10 @@
 export interface ytDataModel {
-    url: string,
-    startHH: string,
-    startMM: string,
-    startSS: string,
-    endHH: string,
-    endMM: string,
-    endSS: string,
-    name: string
+    Url: string,
+    StartHH: string,
+    StartMM: string,
+    StartSS: string,
+    EndHH: string,
+    EndMM: string,
+    EndSS: string,
+    Name: string
 }

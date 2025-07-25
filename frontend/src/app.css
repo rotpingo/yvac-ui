@@ -1,11 +1,19 @@
+#app {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    margin-top: 4rem;
+}
+
 .app-title {
     border: 1px solid red;
     border-radius: 10px;
     padding: 1rem;
-    margin: 1rem 6rem;
+    margin: 3rem 8rem;
 }
 
-.input-url {
+.url {
     display: flex;
     flex-direction: column;
     padding: 1rem;
@@ -15,9 +23,10 @@
     font-size: 20px;
 }
 
-.input-url input {
+.input-url {
+    margin-top: 0.5rem;
     line-height: 22px;
-    font-size: 20px
+    font-size: 20px;
 }
 
 .input-time {
@@ -25,9 +34,33 @@
     flex-direction: row;
 }
 
+.time-start {
+    margin-bottom: 1rem;
+}
+
+.time-end {
+    margin-bottom: 2rem;
+}
+
+.time-input {
+    width: 3rem;
+}
+
 .buttons {
     display: flex;
-    margin: 1rem;
+    margin: 4rem 0rem;
     justify-content: center;
-    border: 1px solid yellowgreen
+    padding: 1rem;
+}
+
+.download-btn {
+    width: 5rem;
+    height: 2.5rem;
+    margin-right: 1rem;
+}
+
+.reset-btn {
+    width: 5rem;
+    height: 2.5rem;
+    margin-left: 1rem;
 }
