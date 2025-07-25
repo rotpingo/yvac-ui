@@ -1,4 +1,4 @@
-export interface dataModel {
+export interface ytDataModel {
     url: string,
     startHH: string,
     startMM: string,
@@ -6,5 +6,5 @@ export interface dataModel {
     endHH: string,
     endMM: string,
     endSS: string,
-    filename: string
+    name: string
 }
