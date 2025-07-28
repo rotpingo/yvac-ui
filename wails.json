@@ -9,5 +9,11 @@
   "author": {
     "name": "rotpingo",
     "email": "viorel.moschoi@gmail.com"
+  },
+  "windows": {
+    "webView2": {
+      "runtime": "fixed",
+      "path": "./webView2"
+    }
   }
 }
