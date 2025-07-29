@@ -17,3 +17,23 @@ to this in your browser, and you can call your Go code from devtools.
 ## Building
 
 To build a redistributable, production mode package, use `wails build`.
+
+
+## Windows Runtime Requirement
+
+This app uses the [WebView2 Fixed Version Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) for Windows builds.
+
+To build:
+1. Download the correct fixed runtime `.cab` from Microsoft.
+2. Extract `msedgewebview2.exe` into a `webview2/` folder in the project root.
+3. Ensure `wails.json` points to it:
+
+```json
+{
+  "windows": {
+    "webview2": {
+      "runtime": "fixed",
+      "path": "./webview2"
+    }
+  }
+}
