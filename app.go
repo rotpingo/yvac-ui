@@ -3,13 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
-	"time"
-
-	"github.com/kkdai/youtube/v2"
 )
 
 // App struct
@@ -40,79 +37,72 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) DownloadAndTrim(data ytData) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	client := youtube.Client{}
-
-	video, err := client.GetVideo(data.Url)
-	if err != nil {
-		fmt.Println("Failed to get the URL", err)
+	// Validate URL
+	if !strings.Contains(data.Url, "youtube.com") && !strings.Contains(data.Url, "youtu.be") {
+		fmt.Println("Invalid YouTube URL")
 		return
 	}
 
 	checkData(&data)
 
-	//AUDIO FORMAT ONLY
-	var bestAudio *youtube.Format
-	maxBitrate := 0
-	for _, f := range video.Formats {
-		if f.AudioChannels > 0 && f.QualityLabel == "" {
-			if f.Bitrate > maxBitrate {
-				bestAudio = &f
-				maxBitrate = f.Bitrate
-			}
-		}
-	}
-
-	if bestAudio == nil {
-		fmt.Println("No suitable audio only format found")
-	}
-
-	stream, _, err := client.GetStream(video, bestAudio)
+	tmpDir, err := os.MkdirTemp("", "ytclip-*")
 	if err != nil {
-		fmt.Println("Failed to get Audio Stream:", err)
+		fmt.Println("Failed to create temp dir:", err)
+		return
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Temp files
+	fullAudio := filepath.Join(tmpDir, "full.opus")
+	finalAudio := correctFilename(data.Name) + ".opus"
+
+	// Build yt-dlp command
+	fmt.Println("Downloading autio with yt-dlp")
+	ytCmd := exec.CommandContext(ctx, "yt-dlp",
+		"--extract-audio",
+		"--audio-format", "opus", // or "mp3" if you have libmp3lame
+		"--audio-quality", "0", // Best quality
+		"--no-playlist",
+		"--output", fullAudio,
+		"--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		"--referer", "https://www.youtube.com/",
+		"--retries", "3",
+		data.Url,
+	)
+
+	ytCmd.Stdout = os.Stdout
+	ytCmd.Stderr = os.Stderr
+
+	if err := ytCmd.Run(); err != nil {
+		fmt.Println("yt-dlp failed:", err)
 		return
 	}
 
-	filename := correctFilename(video.Title) + "_clip.webm"
-	outFile, err := os.Create(filename)
-	if err != nil {
-		fmt.Println("Failed creating file:", err)
-		return
-	}
-	defer outFile.Close()
-
-	fmt.Println("Downloading audio...")
-	_, err = io.Copy(outFile, stream)
-	if err != nil {
-		fmt.Println("Failed to write audio:", err)
-		return
-	}
-	fmt.Println("Audio downloaded")
-
-	// Check if no name was given
-	if data.Name == "" {
-		data.Name = video.Title
-	}
-
-	// trim audio with ffmpeg
-	outputFile := correctFilename(data.Name) + ".webm"
-
-	ss := data.StartHH + ":" + data.StartMM + ":" + data.StartSS
-	to := data.EndHH + ":" + data.EndMM + ":" + data.EndSS
-
-	err = trimAudio(filename, outputFile, ss, to)
-	if err != nil {
-		fmt.Println("Failed to trim the audio:", err)
+	// Verify file exists
+	if _, err := os.Stat(fullAudio); os.IsNotExist(err) {
+		fmt.Println("yt-dlp did not create the file:", fullAudio)
 		return
 	}
 
-	err = os.Remove(outFile.Name())
-	if err != nil {
-		fmt.Println("Failed to delete the full audio file, please delete it manually:", err)
+	// if err := ytCmd.Run(); err != nil {
+	// 	fmt.Println("yt-dlp dit not create the file :", fullAudio)
+	// 	return
+	// }
+
+	// Trim with FFmpeg
+	ss := fmt.Sprintf("%s:%s:%s", data.StartHH, data.StartMM, data.StartSS)
+	to := fmt.Sprintf("%s:%s:%s", data.EndHH, data.EndMM, data.EndSS)
+
+	if err := trimAudio(fullAudio, finalAudio, ss, to); err != nil {
+		fmt.Println("Trim failed:", err)
 		return
 	}
 
-	fmt.Printf("Audio file saved as %s\n", outputFile)
+	// Cleanup
+	fmt.Printf("Saved: %s\n", finalAudio)
 }
 
 func checkData(data *ytData) {
@@ -175,6 +165,7 @@ func trimAudio(input, output, start, end string) error {
 		"-ss", start,
 		"-to", end,
 		"-c:a", "libopus",
+		"-y",
 		output,
 	)
 
@@ -184,23 +175,31 @@ func trimAudio(input, output, start, end string) error {
 	return cmd.Run()
 }
 
-func getVideoDuration(url string) (string, string, string, error) {
-	client := youtube.Client{}
+func getVideoDuration(url string) (hh, mm, ss string, err error) {
 
-	video, err := client.GetVideo(url)
+	out, err := exec.Command("yt-dlp", "--get-duration", url).Output()
 	if err != nil {
-		return "", "", "", fmt.Errorf("Failed to get video: %w", err)
+		return "", "", "", err
 	}
+	dur := strings.TrimSpace(string(out))
 
-	hh, mm, ss := formatDurationToHHMMSS(video.Duration)
-	return hh, mm, ss, nil
+	parts := strings.Split(dur, ":")
+
+	switch len(parts) {
+	case 2: // MM:SS
+		return "00", parts[0], parts[1], nil
+	case 3: // HH:MM:SS
+		return parts[0], parts[1], parts[2], nil
+	default:
+		return "00", "00", "00", fmt.Errorf("unexpected duration format: %s", dur)
+	}
 }
 
-func formatDurationToHHMMSS(d time.Duration) (hh, mm, ss string) {
-	totalSecond := int(d.Seconds())
-	h := totalSecond / 3600
-	m := (totalSecond % 3600) / 60
-	s := totalSecond % 60
-
-	return fmt.Sprintf("%02d", h), fmt.Sprintf("%02d", m), fmt.Sprintf("%02d", s)
-}
+// func formatDurationToHHMMSS(d time.Duration) (hh, mm, ss string) {
+// 	totalSecond := int(d.Seconds())
+// 	h := totalSecond / 3600
+// 	m := (totalSecond % 3600) / 60
+// 	s := totalSecond % 60
+//
+// 	return fmt.Sprintf("%02d", h), fmt.Sprintf("%02d", m), fmt.Sprintf("%02d", s)
+// }
